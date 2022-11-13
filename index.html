@@ -4,9 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grid photogrammetry</title>
+  <title>Grid Photogrammetry</title>
   <link rel="stylesheet" href="./reset.css">
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/geolib@2.0.24/dist/geolib.js"></script>
   <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
   <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
   <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.3.0/mapbox-gl-draw.js'></script>
@@ -35,18 +37,17 @@
   </style>
 </head>
 
-<body>
+<body class="font-sans">
   <article>
     <div id='map'></div>
     <div>
-      <div id="polygon"></div>
       <div>
-        <div id="camera-params"></div>
+        <div class="p-1" id="camera-params"></div>
         <div id="polygon-view"></div>
       </div>
     </div>
   </article>
-  <script type="text/javascript" src="/index.html"></script>
+  <script type="text/javascript" src="/index.js"></script>
 </body>
 
 </html>
