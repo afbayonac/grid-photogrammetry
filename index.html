@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid photogrammetry</title>
+  <link rel="stylesheet" href="./reset.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
+  <link href='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css' rel='stylesheet' />
+  <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.3.0/mapbox-gl-draw.js'></script>
+  <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.3.0/mapbox-gl-draw.css'
+    type='text/css' />
+  <style>
+    article {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      width: 100%;
+      height: 100vh;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    pre { font-family: monospace; }
+    code {
+      padding: 8px;
+      height: 50vh;
+      overflow: scroll;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <article>
+    <div id='map'></div>
+    <div>
+      <div id="polygon"></div>
+      <div>
+        <div id="camera-params"></div>
+        <div id="polygon-view"></div>
+      </div>
+    </div>
+  </article>
+
+  <script>
+    const { createApp } = Vue
+
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://demotiles.maplibre.org/style.json', // stylesheet location
+      center: [-74.5, 40], // starting position [lng, lat]
+      zoom: 9 // starting zoom
+    });
+
+    const draw = new MapboxDraw({
+      controls: {
+        combine_features: false,
+        point: false,
+        line_string: false,
+        uncombine_features: false
+      }
+    });
+
+    map.addControl(draw, 'top-right');
+
+    const PolygonView = {
+      data() {
+        return {
+          polygon: {}
+        }
+      },
+      methods: {
+        setPolygon(polygon) {
+          console.log('set polygon')
+          this.polygon = JSON.stringify(polygon, null, 2)
+        }
+      },
+      template: `<pre><code>{{ polygon }}</code></pre>`
+    }
+
+    const polygonView = createApp(PolygonView).mount('#polygon-view')
+
+    const CameraParams = {
+      data() {
+        return {
+          name: 'air 2s',
+          focalLength: 8.5,
+          imageWidth: 5472,
+          imageHeight: 3648,
+          sensorWidth: 13.31,
+          sensorHeight: 8.88
+        }
+      },
+      methods: {
+        setPolygon(polygon) {
+          console.log('set polygon')
+          this.polygon = JSON.stringify(polygon, null, 2)
+        }
+      },
+      template: `
+        <div>
+          inputs  
+        </div>
+      `
+    }
+    console.log(polygonView)
+
+    const cameraParams = createApp(CameraParams).mount('#camera-params')
+
+    map.on('draw.create', e => {
+      const newFeature = e.features[0]
+      draw
+        .getAll()
+        .features
+        .map(f => 
+          f.id !== newFeature.id && 
+          draw.delete(f.id)
+        )
+
+      polygonView.setPolygon(newFeature)
+    })
+  </script>
+</body>
+
+</html>
