@@ -1,5 +1,12 @@
 const { createApp } = Vue
 
+Math.grados = function(radianes) {
+  return radianes * 180 / Math.PI;
+};
+
+Math.radianes = function(grados) {
+  return Math.PI * grados / 180;
+};
 
 // const event = new Event('onCameraParameters');
 const featureId = null;
@@ -38,7 +45,7 @@ const map = new maplibregl.Map({
   container: 'map',
   style, // stylesheet location
   center: [-74.107807, 4.6482975], // starting position [lng, lat]
-  zoom: 14
+  zoom: 17
 });
 
 map.addControl(draw, 'top-right');
@@ -71,7 +78,8 @@ const CameraParams = {
       imageHeight: 3648,
       sensorWidth: 13.31,
       sensorHeight: 8.88,
-      verticalDistance: 50
+      verticalDistance: 50,
+      angle: 0
     }
   },
   methods: {
@@ -104,7 +112,8 @@ const CameraParams = {
     <input type="number" v-model="imageHeight" max="10000" min="0" /> [px]
     <input type="number" v-model="sensorWidth" max="100" min="0" step="0.01"/> [mm]
     <input type="number" v-model="sensorHeight"  max="100" min="0" step="0.01"/> [mm]
-    <input type="number" v-model="verticalDistance"  max="500" min="0" step="10"/> [m]   
+    <input type="number" v-model="verticalDistance"  max="500" min="0" step="10"/> [m]  
+    <input type="number" v-model="angle"  max="359" min="0" step="1"/> [º]   
     <div class="font-mono">
       <div>GDS<sub>w</sub> = {{Math.round(GDSW * 100) / 100}} cm </div> 
       <div>GDS<sub>h</sub> = {{Math.round(GDSH * 100) / 100}} cm </div> 
@@ -114,73 +123,145 @@ const CameraParams = {
   `
 }
 
-const cameraParams = createApp(CameraParams).mount('#camera-params')
+const params = createApp(CameraParams).mount('#params')
 
-console.log(cameraParams)
 map.on('draw.create', e => {
-  const newFeature = e.features[0]
-  console.log(`--${newFeature.id}--`)
+  const polygon = e.features[0]
+  console.log(`--- ${polygon.id} ---`)
   draw
     .getAll()
     .features
     .map(f =>
-      f.id !== newFeature.id &&
+      f.id !== polygon.id &&
       draw.delete(f.id)
     )
 
-  // console.log(newFeature)s
-  // console.log(cameraParams.CoverturaW)
-    
-  const coordinates = newFeature.geometry.coordinates
-  console.log(coordinates[0][0])
+  const { CoverturaW, CoverturaH, angle } = params
+  const CoverturaHKm = CoverturaH / 100000
+  const CoverturaWKm = CoverturaW / 100000
+  
+  // Boundary box
+  const bbox = turf.bbox(polygon);
+  const pointA = turf.point([bbox[0], bbox[1]])
+  const pointB = turf.point([bbox[2], bbox[3]])
+  const pointC = turf.point([bbox[0], bbox[3]])
+  const pointD = turf.point([bbox[2], bbox[1]])
 
-  const x1 = geolib.computeDestinationPoint(
-    coordinates[0][0],
-    cameraParams.CoverturaH / 200,
-    0
-  )
+  // .....C------B
+  // .....|+++++/|
+  // .....|+++/++|
+  // .....|α /β+++|
+  // .....A______D
+  
+  const alfa = turf.bearing(pointA, pointB) 
+  const beta = Math.abs(90 - alfa)
+  const hypot = turf.distance(pointA, pointB)
 
-  const x2 = geolib.computeDestinationPoint(
-    coordinates[0][0],
-    cameraParams.CoverturaW / 200,
-    270
-  )
-
-  const x3 = geolib.computeDestinationPoint(
-    coordinates[0][0],
-    cameraParams.CoverturaH / 200,
-    180
-  )
-
-  const x4 = geolib.computeDestinationPoint(
-    coordinates[0][0],
-    cameraParams.CoverturaW / 200,
-    90
-  )
-
-  const bta = {
-    id: 'bta',
+  console.log('α', alfa)
+  console.log('β', beta)
+  console.log('angle', angle)
+  console.log('hypot', hypot)
+  console.log('CoverturaHKm', CoverturaHKm)
+  console.log('CoverturaWKm', CoverturaWKm)
+  
+  draw.add({
+    id: 'segmet-1',
     type: 'Feature',
     properties: {},
-    geometry: { type: 'Point', coordinates: [-74.107807, 4.6482975] }
-  };
+    geometry: { type: 'LineString', coordinates: [
+      [bbox[0], bbox[1]],
+      [bbox[0], bbox[3]]
+    ]}
+  })
 
-  const feature = {
-    id: 'unique-id',
+  draw.add({
+    id: 'segmet-2',
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'LineString', coordinates: [
+      [bbox[0], bbox[3]],
+      [bbox[2], bbox[3]]
+    ]}
+  })
+
+  draw.add({
+    id: 'segmet-3',
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'LineString', coordinates: [
+      [bbox[0], bbox[3]],
+      [bbox[2], bbox[1]]
+    ]}
+  })
+
+  draw.add({
+    id: 'segmet-4',
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'LineString', coordinates: [
+      [bbox[2], bbox[3]],
+      [bbox[0], bbox[1]]
+    ]}
+  })
+
+  const angleI = angle % 180
+  const d =  angleI > 90
+  ? Math.abs((CoverturaWKm / 2) / Math.cos(Math.radianes((angleI - 90) - alfa)))
+  : Math.abs((CoverturaWKm / 2) / Math.cos(Math.radianes(angleI - beta)));
+  
+  const segN = hypot / d
+  const origin = angleI > 90 ? pointB : pointC
+  const angleH = angleI > 90 ?  180 + alfa : 90 + beta 
+  console.log(segN)
+  console.log("d", d , beta, angleI)
+  let line = 0
+  
+  console.log(angleH)
+  while(line < segN) {
+    console.log(angleH)
+    const p0 = turf.rhumbDestination(origin, d * line, angleH)
+    const p1 = turf.rhumbDestination(p0, hypot / 2, angleI).geometry.coordinates
+    const p2 = turf.rhumbDestination(p0, hypot / 2, angleI + 180).geometry.coordinates
+    console.log('line', line, p0)
+
+
+    draw.add({
+      id: `seg-${line}`,
+      type: 'Feature',
+      properties: {},
+      geometry: { type: 'LineString', coordinates: [
+        p1,
+        p2
+      ]}
+    })
+    line ++
+  }
+  
+  draw.add(frameFeature(CoverturaW, CoverturaH, angle, origin, '1'))
+  polygonView.setPolygon(polygon)
+})
+
+const frameFeature = (CoverturaW, CoverturaH, angle, origin, id) => {
+  const hypot = Math.hypot(CoverturaH , CoverturaW) / 200000
+  const offsetAngle = (angle - 90) % 360
+  const teta = Math.grados(Math.atan2(CoverturaH , CoverturaW))
+
+  const x1 = turf.rhumbDestination(origin, hypot,teta + offsetAngle).geometry.coordinates
+  const x2 = turf.rhumbDestination(origin, hypot, 180 - teta + offsetAngle).geometry.coordinates
+  const x3 = turf.rhumbDestination(origin, hypot, 180 + teta + offsetAngle).geometry.coordinates
+  const x4 = turf.rhumbDestination(origin, hypot, 360 - teta + offsetAngle).geometry.coordinates
+    
+  return {
+    id: `frame-${id}`,
     type: 'Feature',
     properties: {},
     geometry: { type: 'Polygon', coordinates: [[
-      [x4.longitude, x1.latitude],
-      [x2.longitude, x1.latitude],
-      [x2.longitude, x3.latitude],
-      [x4.longitude, x3.latitude],
-      [x4.longitude, x1.latitude],
+      [x1[0], x1[1]],
+      [x2[0], x2[1]],
+      [x3[0], x3[1]],
+      [x4[0], x4[1]],
+      [x1[0], x1[1]],
     ]] }
-  };
-  // console.log(geolib.computeDestinationPoint(coordinates[0], 100, 20), 'fist coordinate', coordinates[0][0])
-  console.log('feature', feature)
-  console.log('bta', bta)
-  draw.add(bta)
-  draw.add(feature)
-  polygonView.setPolygon(newFeature)
-})
+  }
+} 
+
