@@ -148,7 +148,7 @@ map.on('draw.create', e => {
 
   const stepX = CoverturaH / 200000
   const stepY = CoverturaH / 200000
-  const route = getRoute(angle, stepX, polygon)  
+  const route = getRoute(angle, stepY, polygon)  
 
   route.map(s => draw.add(s))
 
