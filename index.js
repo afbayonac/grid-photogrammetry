@@ -146,9 +146,9 @@ map.on('draw.create', e => {
   //   console.log('CoverturaWKm', CoverturaWKm)
   // }
 
-  const stepX = CoverturaH / 200000
-  const stepY = CoverturaH / 200000
-  const route = getRoute(angle, stepY, polygon)  
+  const stepW = CoverturaW / 200000
+  const stepH = CoverturaH / 200000
+  const route = getRoute(angle, stepW, polygon)  
 
   route.map(s => draw.add(s))
 
@@ -237,6 +237,10 @@ const getRoute = (angle, step, polygon) => {
   const segments = hypot / stepCorrection
   const origin = angleIdentity > 90 ? pointB : pointC
   const angleH = angleIdentity > 90 ?  180 + alfa : 90 + beta 
+
+  if (DEBUG) {
+    console.log(step, stepCorrection)
+  }
 
   let segment = 0
   const route = []
