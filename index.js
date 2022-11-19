@@ -80,7 +80,10 @@ const CameraParams = {
       sensorWidth: 13.31,
       sensorHeight: 8.88,
       verticalDistance: 50,
-      angle: 0
+      overlap: 80,
+      sidelap: 80,
+      angle: 0,
+      showFrames: true
     }
   },
   methods: {
@@ -115,6 +118,9 @@ const CameraParams = {
     <input type="number" v-model="sensorHeight"  max="100" min="0" step="0.01"/> [mm]
     <input type="number" v-model="verticalDistance"  max="500" min="0" step="10"/> [m]  
     <input type="number" v-model="angle"  max="359" min="0" step="1"/> [º]   
+    <input type="number" v-model="overlap"  max="99" min="0" step="1"/> [%]  
+    <input type="number" v-model="sidelap"  max="99" min="0" step="1"/> [%]
+    <input type="checkbox" v-model="showFrames" />
     <div class="font-mono">
       <div>GDS<sub>w</sub> = {{Math.round(GDSW * 100) / 100}} cm </div> 
       <div>GDS<sub>h</sub> = {{Math.round(GDSH * 100) / 100}} cm </div> 
@@ -137,7 +143,7 @@ map.on('draw.create', e => {
       draw.delete(f.id)
     )
 
-  const { CoverturaW, CoverturaH, angle } = params
+  const { CoverturaW, CoverturaH, angle, sidelap, overlap } = params
   // const CoverturaHKm = CoverturaH / 100000
   // const CoverturaWKm = CoverturaW / 100000
   
@@ -146,21 +152,45 @@ map.on('draw.create', e => {
   //   console.log('CoverturaWKm', CoverturaWKm)
   // }
 
-  const stepW = CoverturaW / 200000
-  const stepH = CoverturaH / 200000
+  const stepW = CoverturaW / 100000 * (1 - (sidelap / 100))
+  const stepH = CoverturaH / 100000 * (1 - (overlap / 100))
+
   const route = getRoute(angle, stepW, polygon)  
 
-  route.map(s => draw.add(s))
 
-  const origin = {
-    id: 'debug-1',
-    type: 'Feature',
-    properties: {},
-    geometry: { type: 'Point', coordinates: route[0].geometry.coordinates[0] }
-  }
+  route.map(s => {
+    const distance = turf.distance(s[0], s[1])
+    const angle = turf.bearing(s[0], s[1])
 
-  console.log('origin', origin)
-  draw.add(frameFeature(CoverturaW, CoverturaH, angle, origin, '1'))
+
+    Array(Math.ceil( distance / stepH))
+      .fill(null)
+      .map((_, i) => turf.rhumbDestination(s[0], stepH * i, angle))
+      .map((p)=> {
+        draw.add(frameFeature(CoverturaW, CoverturaH, angle, p, '1'))
+        draw.add(p)
+      })
+
+  })
+
+  console.log(route)
+  draw.add(
+    {
+      // id: 'debug-1',
+      type: 'Feature',
+      // properties: {},
+      properties: {
+        name: 'Aconcagua',
+        height: 200
+      },
+      geometry: { 
+        type: 'LineString', 
+        coordinates: route
+          .map(s => [s[0].geometry.coordinates, s[1].geometry.coordinates]) 
+          .reduce((aco, cur) => [...aco, cur[0], cur[1]])
+      }
+    }
+  )
   polygonView.setPolygon(polygon)
 })
 
@@ -178,55 +208,55 @@ const getRoute = (angle, step, polygon) => {
   const hypot = turf.distance(pointA, pointB)
 
   if (DEBUG) {
-    console.log('angle', angle)
-    console.log('α', alfa)
-    console.log('β', beta)
-    console.log('h', hypot)
-    console.log('C------B')
-    console.log('|++++/+|')
-    console.log('|+++/++|')
-    console.log('|α /β++|')
-    console.log('A______D')
+    // console.log('angle', angle)
+    // console.log('α', alfa)
+    // console.log('β', beta)
+    // console.log('h', hypot)
+    // console.log('C------B')
+    // console.log('|++++/+|')
+    // console.log('|+++/++|')
+    // console.log('|α /β++|')
+    // console.log('A______D')
 
-    draw.add({
-      id: 'debug-1',
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'LineString', coordinates: [
-        [bbox[0], bbox[1]],
-        [bbox[0], bbox[3]]
-      ]}
-    })
+    // draw.add({
+    //   id: 'debug-1',
+    //   type: 'Feature',
+    //   properties: {},
+    //   geometry: { type: 'LineString', coordinates: [
+    //     [bbox[0], bbox[1]],
+    //     [bbox[0], bbox[3]]
+    //   ]}
+    // })
   
-    draw.add({
-      id: 'debug-2',
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'LineString', coordinates: [
-        [bbox[0], bbox[3]],
-        [bbox[2], bbox[3]]
-      ]}
-    })
+    // draw.add({
+    //   id: 'debug-2',
+    //   type: 'Feature',
+    //   properties: {},
+    //   geometry: { type: 'LineString', coordinates: [
+    //     [bbox[0], bbox[3]],
+    //     [bbox[2], bbox[3]]
+    //   ]}
+    // })
   
-    draw.add({
-      id: 'debug-3',
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'LineString', coordinates: [
-        [bbox[0], bbox[3]],
-        [bbox[2], bbox[1]]
-      ]}
-    })
+    // draw.add({
+    //   id: 'debug-3',
+    //   type: 'Feature',
+    //   properties: {},
+    //   geometry: { type: 'LineString', coordinates: [
+    //     [bbox[0], bbox[3]],
+    //     [bbox[2], bbox[1]]
+    //   ]}
+    // })
   
-    draw.add({
-      id: 'debug-4',
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'LineString', coordinates: [
-        [bbox[2], bbox[3]],
-        [bbox[0], bbox[1]]
-      ]}
-    })
+    // draw.add({
+    //   id: 'debug-4',
+    //   type: 'Feature',
+    //   properties: {},
+    //   geometry: { type: 'LineString', coordinates: [
+    //     [bbox[2], bbox[3]],
+    //     [bbox[0], bbox[1]]
+    //   ]}
+    // })
   }
 
   const angleIdentity = angle % 180
@@ -234,53 +264,56 @@ const getRoute = (angle, step, polygon) => {
     ? Math.abs(step / Math.cos(Math.radianes((angleIdentity - 90) - alfa)))
     : Math.abs(step / Math.cos(Math.radianes(angleIdentity - beta)));
   
-  const segments = hypot / stepCorrection
+  const segments = Math.floor(hypot / stepCorrection)
   const origin = angleIdentity > 90 ? pointB : pointC
   const angleH = angleIdentity > 90 ?  180 + alfa : 90 + beta 
 
   if (DEBUG) {
     console.log(step, stepCorrection)
   }
+ 
+  const route = Array(segments + 1).fill({})
+    .map((_, i) => {
+      const p0 = turf.rhumbDestination(origin, stepCorrection * i, angleH)
+      const p1 = turf.rhumbDestination(p0, hypot, angleIdentity).geometry.coordinates
+      const p2 = turf.rhumbDestination(p0, hypot, angleIdentity + 180).geometry.coordinates
+      return {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'LineString', coordinates: [p1, p2] }
+      }
+    })
+    .map(line => turf.lineIntersect(line, polygon).features
+        .sort((a, b) => b.geometry.coordinates.reduce((aco, cur) => aco + cur, 0) - a.geometry.coordinates.reduce((aco, cur) => aco + cur, 0))
+      )
+    .filter(intersects => intersects.length > 0 && intersects.length % 2 === 0)
+    .reduce((route, intersects) => {
+      console.log('intersects', intersects)
+      return [
+        ...route, 
+        ...Array(intersects.length / 2)
+          .fill([])
+          .map((_, i) => intersects.slice(2 * i, 2 * (i + 1)))
+          .map(s => [
+            s[0], 
+            s[1]
+          ]) 
+      ]
+    }, [])
 
-  let segment = 0
-  const route = []
-  while(segment < segments) {
-    const p0 = turf.rhumbDestination(origin, stepCorrection * segment, angleH)
-    const p1 = turf.rhumbDestination(p0, hypot, angleIdentity).geometry.coordinates
-    const p2 = turf.rhumbDestination(p0, hypot, angleIdentity + 180).geometry.coordinates
-    
-    const lineString = {
+    console.log(route)
+    sortRoute(route)
+    .map(([p1, p2]) => ({
       type: 'Feature',
       properties: {},
-      geometry: { type: 'LineString', coordinates: [p1, p2] }
-    }
-    
-    const intersects = turf.lineIntersect(lineString, polygon).features
-    
+      geometry: { type: 'LineString', coordinates: [p1.geometry.coordinates, p2.geometry.coordinates] }
+    })) 
   
-    if(intersects.length > 0 && intersects.length % 2 === 0) { 
-      const intersetLines = Array((intersects.length / 2))
-        .fill([])
-        .map(() => intersects.splice(0, 2))
-        .map(s => ({
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates: [
-            s[0].geometry.coordinates, 
-            s[1].geometry.coordinates
-          ]}
-        }))
-        .map(s => route.push(s))
-    }
-
-    segment++
-  }
-
   if (DEBUG) {
     console.log(route)
   }
 
-  return route
+  return sortRoute(route)
 }
 
 const frameFeature = (CoverturaW, CoverturaH, angle, origin, id) => {
@@ -294,7 +327,7 @@ const frameFeature = (CoverturaW, CoverturaH, angle, origin, id) => {
   const x4 = turf.rhumbDestination(origin, hypot, 360 - teta + offsetAngle).geometry.coordinates
     
   return {
-    id: `frame-${id}`,
+    // id: `frame-${id}`,
     type: 'Feature',
     properties: {},
     geometry: { type: 'Polygon', coordinates: [[
@@ -307,3 +340,22 @@ const frameFeature = (CoverturaW, CoverturaH, angle, origin, id) => {
   }
 } 
 
+const findNearest = (point, lines) => {
+  const { nearest, others } = lines
+    .map(l => ({ p: l, d: l.map(p => turf.distance(point, p)) }))
+    .reduce((result, current) => {
+      if (result.nearest === null) return {...result, nearest: current}
+      if (Math.min(...result.nearest.d) < Math.min(...current.d)) return {...result, others: [...result.others, current] }
+      return { nearest: current, others: [result.nearest, ...result.others] }
+    }, { nearest: null, others: [] })
+
+  if (nearest.d[0] < nearest.d[1]) return [nearest.p, ...others.map(o => o.p)]
+  return [[nearest.p[1],nearest.p[0]], ...others.map(o => o.p)]
+}
+
+const sortRoute = lines => {
+  if (lines.length === 1) {
+    return lines
+  }
+  return [lines[0], ...sortRoute(findNearest(lines[0][1], lines.slice(1)))]
+}
