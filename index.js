@@ -1,9 +1,11 @@
 /* global Vue, mitt, turf, Blob, MapboxDraw, maplibregl */
+import droneModels from './droneModels.js'
 
 const { createApp } = Vue
 const emitter = mitt()
 const DEBUG = false
 
+console.log(droneModels)
 Math.grados = radianes => {
   return radianes * 180 / Math.PI
 }
@@ -73,6 +75,8 @@ const [map, draw] = initMap()
 const Control = {
   data () {
     return {
+      droneModels,
+      droneModel: 'custom',
       focalLength: 8.4,
       imageWidth: 5472,
       imageHeight: 3648,
@@ -134,6 +138,15 @@ const Control = {
     }
   },
   watch: {
+    droneModel () {
+      if (this.droneModel === 'custom') return
+      const { focalLength, imageHeight, imageWidth, sensorHeight, sensorWidth } = this.droneModels[Number(this.droneModel)]
+      this.focalLength = focalLength
+      this.imageHeight = imageHeight
+      this.imageWidth = imageWidth
+      this.sensorHeight = sensorHeight
+      this.sensorWidth = sensorWidth
+    },
     focalLength () {
       emitter.emit('control.update')
     },
@@ -169,31 +182,77 @@ const Control = {
     }
   },
   template: `
-    <h2 class="text-center mb-2">Params</h2>
+    <h2 class="text-center mb-2">Parameters</h2>
     <div class="grid grid-cols-2 w-80 mx-2 mb-5 font-mono">
+      <label>Drone Model : </label>
+      <span class="align-middle">
+        <select class="border block-inline text-left w-40" type="number" v-model="droneModel">
+          <option value="custom">Custom</option>
+          ${droneModels.map((e, i) => '<option value="' + i + '">' + e.name + '</option> ').join('')}
+        </select>
+      </span>
+
       <label>Focal Length : </label>
       <span class="align-middle">
-        <input class="border block-inline text-right w-24" type="number" v-model="focalLength" max="100" min="0"  step="0.01"/> [mm]
+        <input 
+          class="border block-inline text-right w-24" type="number"
+          v-model="focalLength"
+          max="100" min="0"
+          step="0.01"
+          :disabled="droneModel  !== 'custom'"
+        /> [mm]
       </span>
       
       <label>Image Width : </label>
       <span class="align-middle">
-        <input class="border block-inline text-right w-24" type="number" v-model="imageWidth" max="100000" min="0"  step="1"/> [px]
+        <input 
+          class="border block-inline text-right w-24" 
+          type="number" 
+          v-model="imageWidth" 
+          max="100000" 
+          min="0"  
+          step="1"
+          :disabled="droneModel  !== 'custom'"
+        /> [px]
       </span>
 
       <label>Image Height : </label>
       <span class="align-middle">
-        <input class="border block-inline text-right w-24" type="number" v-model="imageHeight" max="100000" min="0"  step="1"/> [px]
+        <input 
+          class="border block-inline text-right w-24" 
+          type="number" 
+          v-model="imageHeight" 
+          max="100000" 
+          min="0"  
+          step="1"
+          :disabled="droneModel  !== 'custom'"
+        /> [px]
       </span>
 
       <label>Sensor Width : </label>
       <span class="align-middle">
-        <input class="border block-inline text-right w-24" type="number" v-model="sensorWidth" max="100" min="0"  step="0.01"/> [mm]
+        <input 
+          class="border block-inline text-right w-24" 
+          type="number" 
+          v-model="sensorWidth" 
+          max="100" 
+          min="0"  
+          step="0.01"
+          :disabled="droneModel  !== 'custom'"
+        /> [mm]
       </span>
 
       <label>Sensor Height : </label>
       <span class="align-middle">
-        <input class="border block-inline text-right w-24" type="number" v-model="sensorHeight" max="100" min="0"  step="0.01"/> [mm]
+        <input 
+          class="border block-inline text-right w-24" 
+          type="number" 
+          v-model="sensorHeight" 
+          max="100" 
+          min="0"  
+          step="0.01"
+          :disabled="droneModel  !== 'custom'"
+        /> [mm]
       </span>
 
       <label>Fly Height : </label>
