@@ -1,3 +1,5 @@
+/* global Vue, mitt, turf, Blob, MapboxDraw, maplibregl */
+
 const { createApp } = Vue
 const emitter = mitt()
 const DEBUG = false
@@ -304,7 +306,7 @@ const updateRoute = (draw, polygon, control) => {
 
 const genRoute = (angle, step, polygon) => {
   // Boundary box
-  const bbox = turf.bbox(polygon);
+  const bbox = turf.bbox(polygon)
   const pointA = turf.point([bbox[0], bbox[1]])
   const pointB = turf.point([bbox[2], bbox[3]])
   const pointC = turf.point([bbox[0], bbox[3]])
@@ -464,27 +466,25 @@ const findNearest = (point, lines) => {
   const { nearest, others } = lines
     .map(l => ({ p: l, d: l.map(p => turf.distance(point, p)) }))
     .reduce((result, current) => {
-      
       if (result.nearest === null) {
         return {
           ...result,
           nearest: current
         }
       }
-      
+
       if (Math.min(...result.nearest.d) < Math.min(...current.d)) {
         return {
-          ...result, 
-          others: [...result.others, current] 
+          ...result,
+          others: [...result.others, current]
         }
       }
 
       return { nearest: current, others: [result.nearest, ...result.others] }
     }, { nearest: null, others: [] })
 
-
   return [
-    nearest.d[0] < nearest.d[1] ? nearest.p : [nearest.p[1],nearest.p[0]], 
+    nearest.d[0] < nearest.d[1] ? nearest.p : [nearest.p[1], nearest.p[0]],
     ...others.map(o => o.p)
   ]
 }
