@@ -6,72 +6,76 @@ export default [
     imageHeight: 3648,
     sensorWidth: 13.31,
     sensorHeight: 8.88
-  }, {
-    name: 'DJI Mini 2',
-    sensorWidth: 6.3,
-    focalLength: 4.49,
-    imageWidth: 4000,
-    imageHeight: 3000
-  }, {
-    name: 'DJI Mavic Mini',
-    sensorWidth: 6.3,
-    focalLength: 4.49,
-    imageWidth: 4000,
-    imageHeight: 3000
-  }, {
-    name: 'DJI Mini SE',
-    sensorWidth: 6.3,
-    focalLength: 4.49,
-    imageWidth: 4000,
-    imageHeight: 3000
-  }, {
-    name: 'DJI Air 2S',
-    sensorWidth: 13.2,
-    focalLength: 8.4,
-    imageWidth: 5472,
-    imageHeight: 3648
-  }, {
-    name: 'DJI Mavic Air',
-    sensorWidth: 13.2,
-    focalLength: 4.7,
-    imageWidth: 4056,
-    imageHeight: 3040
-  }, {
-    name: 'DJI Mavic Air 2',
-    sensorWidth: 6.3,
-    focalLength: 4.49,
-    imageWidth: 8000,
-    imageHeight: 6000
-  }, {
-    name: 'DJI Mavic 2 Pro',
-    sensorWidth: 13.2,
-    focalLength: 10.3,
-    imageWidth: 5472,
-    imageHeight: 3648
-  }, {
-    name: 'DJI Mavic 2 Zoom',
-    sensorWidth: 6.3,
-    focalLength: 8.6,
-    imageWidth: 4000,
-    imageHeight: 3000
-  }, {
-    name: 'DJI Phantom 3',
-    sensorWidth: 6.3,
-    focalLength: 3.61,
-    imageWidth: 4000,
-    imageHeight: 3000
-  }, {
-    name: 'DJI Phantom 4',
-    sensorWidth: 6.3,
-    focalLength: 3.61,
-    imageWidth: 4000,
-    imageHeight: 3000
-  }, {
-    name: 'DJI Phantom 4 Pro / 2.0 / Advanced',
-    sensorWidth: 13.2,
-    focalLength: 8.8,
-    imageWidth: 5472,
-    imageHeight: 3648
+  // }, {
+  //   name: 'DJI Mini 2',
+  //   sensorWidth: 6.3,
+  //   sensorWidth: 6.3,
+  //   focalLength: 4.49,
+  //   imageWidth: 4000,
+  //   imageHeight: 3000
+  // }, {
+  //   name: 'DJI Mavic Mini',
+  //   sensorWidth: 6.3,
+  //   sensorWidth: 6.3,
+  //   focalLength: 4.49,
+  //   imageWidth: 4000,
+  //   imageHeight: 3000
+  // }, {
+  //   name: 'DJI Mini SE',
+  //   sensorWidth: 6.3,
+  //   sensorWidth: 6.3,
+  //   focalLength: 4.49,
+  //   imageWidth: 4000,
+  //   imageHeight: 3000
+  // }, {
+  //   name: 'DJI Air 2S',
+  //   sensorWidth: 13.2,
+  //   focalLength: 8.4,
+  //   imageWidth: 5472,
+  //   imageHeight: 3648
+  // },
+  // {
+  //   name: 'DJI Mavic Air',
+  //   sensorWidth: 13.2,
+  //   focalLength: 4.7,
+  //   imageWidth: 4056,
+  //   imageHeight: 3040
+  // }, {
+  //   name: 'DJI Mavic Air 2',
+  //   sensorWidth: 6.3,
+  //   focalLength: 4.49,
+  //   imageWidth: 8000,
+  //   imageHeight: 6000
+  // }, {
+  //   name: 'DJI Mavic 2 Pro',
+  //   sensorWidth: 13.2,
+  //   focalLength: 10.3,
+  //   imageWidth: 5472,
+  //   imageHeight: 3648
+  // }, {
+  //   name: 'DJI Mavic 2 Zoom',
+  //   sensorWidth: 6.3,
+  //   focalLength: 8.6,
+  //   imageWidth: 4000,
+  //   imageHeight: 3000
+  // }, {
+  //   name: 'DJI Phantom 3',
+  //   sensorWidth: 6.3,
+  //   focalLength: 3.61,
+  //   imageWidth: 4000,
+  //   imageHeight: 3000
+  // }, {
+  //   name: 'DJI Phantom 4',
+  //   sensorWidth: 6.3,
+  //   focalLength: 3.61,
+  //   imageWidth: 4000,
+  //   imageHeight: 3000
+  // }, {
+  //   name: 'DJI Phantom 4 Pro / 2.0 / Advanced',
+  //   sensorWidth: 13.2,
+  //   focalLength: 8.8,
+  //   imageWidth: 5472,
+  //   imageHeight: 3648
   }, {
     name: 'Nikon aw100',
     focalLength: 5,

@@ -90,10 +90,14 @@ const Control = {
       showCameras: true,
       images: 0,
       area: 0,
-      route: null
+      route: null,
+      show: true
     }
   },
   methods: {
+    toogleShow () {
+      this.show = !this.show
+    },
     setArea (area) {
       this.area = area
     },
@@ -182,8 +186,25 @@ const Control = {
     }
   },
   template: `
-    <h2 class="text-center mb-2">Parameters</h2>
-    <div class="grid grid-cols-2 w-80 mx-2 mb-5 font-mono">
+  <div>
+    <span   
+      class="absolute block p-1 m-2 left-0 top-0 material-symbols-outlined bg-[#FFF] rounded drop-shadow-md"
+      v-on:click="toogleShow"
+      v-bind:class="{ 'invisible' : show}"
+    > menu </span>
+  </div>
+  <div 
+    class="absolute p-2  translate-x-[-120%] w-100 mx-auto my-24 md:m-2 rounded drop-shadow-md z-10 bg-[#FFF]"
+    v-bind:class="{ 'translate-x-[0%]' : show}"
+    >
+    <header class="relative mx-5 mb-5">
+      <h2 class="text-center mb-2">Grid Photogrammetry</h2>
+      <span   
+        class="absolute right-0 top-0 material-symbols-outlined"
+        v-on:click="toogleShow"
+      > close </span> 
+    </header>
+    <div class="grid grid-cols-2 w-80  md:mx-2 mb-5 font-mono">
       <label>Drone Model : </label>
       <span class="align-middle">
         <select class="border block-inline text-left w-40" type="number" v-model="droneModel">
@@ -304,13 +325,17 @@ const Control = {
         Download Lichit CVS
       </button>
     </div>
+  </div>
   `
 }
 
 const control = createApp(Control).mount('#control')
 
 const updateRoute = (draw, polygon, control) => {
-  if (!polygon) return
+  if (!polygon) {
+    draw.changeMode('draw_polygon')
+    return
+  }
 
   control.setArea(turf.area(polygon))
   const {
