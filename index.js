@@ -3,9 +3,8 @@ import droneModels from './droneModels.js'
 
 const { createApp } = Vue
 const emitter = mitt()
-const DEBUG = false
+const DEBUG = true
 
-console.log(droneModels)
 Math.grados = radianes => {
   return radianes * 180 / Math.PI
 }
@@ -135,7 +134,7 @@ const Control = {
       return (this.sensorHeight / 10) * (this.flyHeight * 100) / (this.focalLength / 10)
     },
     stepW () {
-      return this.CoverturaH / 100000 * (1 - (this.sidelap / 100))
+      return this.CoverturaW / 100000 * (1 - (this.sidelap / 100))
     },
     stepH () {
       return this.CoverturaH / 100000 * (1 - (this.overlap / 100))
@@ -349,8 +348,6 @@ const updateRoute = (draw, polygon, control) => {
   } = control
 
   const route = genRoute(angle, stepW, polygon)
-
-  control.setRoute(route)
 
   const points = route
     .reduce((points, s) => {
