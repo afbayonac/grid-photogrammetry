@@ -3,7 +3,7 @@ import droneModels from './droneModels.js'
 
 const { createApp } = Vue
 const emitter = mitt()
-const DEBUG = true
+const DEBUG = false
 
 Math.grados = radianes => {
   return radianes * 180 / Math.PI
